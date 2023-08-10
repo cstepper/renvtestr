@@ -16,6 +16,111 @@
 #
 #*******************************************************************************
 
+# 2023-08-10 ----
+
+# behavior of renv v1.0.0 ----
+packageVersion("renv")
+
+renv::snapshot(
+  lockfile = "renv_cran.lock",
+  type = "explicit",
+  repos = getOption("repos")["CRAN"]
+)
+
+status = renv::status(lockfile = "renv_cran.lock")
+status$synchronized
+
+# behavior of renv github version ----
+renv::install("rstudio/renv")
+packageVersion("renv")
+
+renv::snapshot(
+  lockfile = "renv_github.lock",
+  type = "explicit",
+  repos = getOption("repos")["CRAN"]
+)
+
+
+# Fork ----
+renv::install("cstepper/renv")
+packageVersion("renv")
+
+renv::snapshot(
+  lockfile = "renv_fork_main.lock",
+  type = "explicit",
+  repos = getOption("repos")["CRAN"]
+)
+
+
+# PR ----
+renv::install("cstepper/renv@explicit_snapshot")
+packageVersion("renv")
+
+renv::snapshot(
+  lockfile = "renv_pr_snapshot.lock",
+  type = "explicit",
+  repos = getOption("repos")["CRAN"],
+  dev = TRUE
+)
+
+
+# comparison ----
+fls = dir(pattern = "*.lock") |>
+  purrr::set_names() |>
+  purrr::map(renv::lockfile_read)
+
+# compare Github and local main
+waldo::compare(fls$renv_github.lock, fls$renv_pr_snapshot.lock)
+
+# status checks ----
+renv::status(lockfile = "renv_pr_snapshot.lock", dev = TRUE)
+
+
+
+
+# # workaround to include *Suggests* dependencies to lockfile ----
+# packages = desc::desc_get_deps()
+# # packages = renv:::renv_dependencies_impl(file.path("DESCRIPTION"), dev = TRUE)
+# deps = c("renv", packages$package)
+#
+# renv::snapshot(
+#   repos = getOption("repos")["CRAN"],
+#   packages = deps,
+#   lockfile = "renv_incl_dev.lock"
+# )
+#
+# status = renv::status(lockfile = "renv_incl_dev.lock")
+# status$synchronized
+#
+#
+# # compare ----
+# fls = dir(pattern = "*.lock") |>
+#   purrr::set_names() |>
+#   purrr::map(renv::lockfile_read)
+#
+# waldo::compare(fls$renv_incl_dev.lock, fls$renv.lock)
+#
+#
+#
+#
+# # ----
+# devtools::load_all("~/cstepper/mischmasch/renv/")
+# packageVersion("renv")
+#
+# renv::snapshot(
+#   repos = getOption("repos")["CRAN"],
+#   lockfile = "renv_pr_snapshot.lock",
+#   type = "explicit"# ,
+#   # dev = TRUE
+# )
+#
+# fls = dir(pattern = "*.lock") |>
+#   purrr::set_names() |>
+#   purrr::map(renv::lockfile_read)
+#
+# waldo::compare(fls$renv_incl_dev.lock, fls$renv_pr_snapshot.lock)
+
+
 # 2023-08-02 ----
 
 # checks for renv unloading issue
